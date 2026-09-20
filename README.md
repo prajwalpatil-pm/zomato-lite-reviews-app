@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Zomato Lite
 
-## Getting Started
+One restaurant, two things to do: **write a review** and **see the restaurant page**.
+Small on purpose — the ideas inside are the same ones running any real product.
 
-First, run the development server:
+## The one lesson: store facts, compute answers
+
+The database stores **facts** (individual reviews). It has **no** `average_rating`
+column and **no** `latest_review` column, because those are **results**, not facts.
+The backend computes them fresh on every request with `AVG(rating)`, `COUNT(*)` and
+`ORDER BY created_at DESC`. The frontend receives `4.3` and prints `4.3` — it never
+adds, divides or sorts.
+
+## The five layers
+
+| File | Layer | What it does |
+| --- | --- | --- |
+| `db/schema.sql` | database | The two tables. No computed columns, on purpose. |
+| `db/seed.sql` | database | Ludhiana Burrito + 3 starter reviews. |
+| `scripts/db-setup.mjs` | database | `npm run db:setup` — resets + seeds the DB, prints the rows. |
+| `lib/db.ts` | config | The single Neon Postgres connection. |
+| `lib/types.ts`, `lib/format.ts` | shared | The API shape; display-only helpers (colour, "2d ago"). |
+| `app/api/reviews/route.ts` | backend | `POST` — validates rating, comment, restaurant, then inserts one row. |
+| `app/api/restaurants/[id]/route.ts` | backend | `GET` — computes average, count, latest + the rest. |
+| `app/restaurant/[id]/page.tsx` | frontend | Calls the GET API and renders it. Zero maths here. |
+| `app/review/[restaurantId]/page.tsx` + `ReviewForm.tsx` | frontend | The star picker + comment box; posts to the API. |
+
+## Run it locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run db:setup   # creates the tables and seeds them (reads DATABASE_URL from .env)
+npm run dev        # http://localhost:3000  -> redirects to /restaurant/1
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`DATABASE_URL` lives in `.env`, which is git-ignored — a secret must never go into Git.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Why the backend re-checks everything
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The star picker only offers 1–5, but anyone can call the API directly from a terminal.
+So the backend rejects a rating of 500 even though the UI can't produce one. Frontend
+validation is kindness; backend validation is safety. Try it:
 
-## Learn More
+```bash
+curl -X POST http://localhost:3000/api/reviews \
+  -H "Content-Type: application/json" \
+  -d '{"restaurantId":1,"rating":500,"comment":"hacked"}'
+# -> 400 {"error":"Rating must be a whole number between 1 and 5."}
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy (GitHub + Vercel)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+See `DEPLOY.md` for copy-paste steps. The only thing that ever changes in production
+is where the database lives: add `DATABASE_URL` in the Vercel project's Environment
+Variables (same value as your local `.env`). Skip that and the build succeeds but the
+site breaks — that is the classic "works on my machine" lesson.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Stack
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Neon Postgres via
+`@neondatabase/serverless` · raw SQL, no ORM · deployed on Vercel.
