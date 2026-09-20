@@ -4,9 +4,8 @@ import type { ReviewItem, RestaurantView } from "@/lib/types";
 
 // GET /api/restaurants/[id]  —  everything the restaurant page needs, in one call.
 //
-// This is where "store facts, compute answers" lives. The database holds raw
-// reviews; the average, the count and "the latest one" are all worked out HERE,
-// fresh, every single time the page loads. Nothing is cached in a column.
+// "Store facts, compute answers": the database holds raw reviews; the average,
+// the count and "the latest one" are all worked out HERE, fresh, every request.
 
 type RawReviewRow = {
   id: number;
@@ -31,17 +30,15 @@ export async function GET(
   const { id } = await ctx.params;
   const restaurantId = Number(id);
 
-  // Does this restaurant exist? If not, 404 — "you asked for something not here."
   const found = Number.isInteger(restaurantId)
-    ? await sql`SELECT id, name, cuisine, area FROM restaurants WHERE id = ${restaurantId}`
+    ? await sql`SELECT id, name, cuisine, area, image_url FROM restaurants WHERE id = ${restaurantId}`
     : [];
   if (found.length === 0) {
     return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
   }
   const restaurant = found[0];
 
-  // COMPUTED right now from the raw rows. This is the entire intelligence of
-  // the product: AVG(rating) and COUNT(*).
+  // COMPUTED right now from the raw rows: AVG(rating) and COUNT(*).
   const [stats] = await sql`
     SELECT AVG(rating) AS avg, COUNT(*) AS count
     FROM reviews
@@ -51,8 +48,8 @@ export async function GET(
   const averageRating =
     stats.avg === null ? null : Math.round(Number(stats.avg) * 10) / 10;
 
-  // Newest first. The single newest row is "latest"; everything after it is the
-  // rest — so the page can show the latest separately and never print it twice.
+  // Newest first. The single newest is "latest"; everything after it is "the
+  // rest", so the page never prints the latest review twice.
   const ordered = (await sql`
     SELECT id, rating, comment, created_at
     FROM reviews
@@ -66,6 +63,7 @@ export async function GET(
     name: restaurant.name,
     cuisine: restaurant.cuisine,
     area: restaurant.area,
+    imageUrl: restaurant.image_url ?? null,
     averageRating,
     totalReviews,
     latestReview,

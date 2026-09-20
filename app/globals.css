@@ -1,21 +1,44 @@
 @import "tailwindcss";
 
-/* The Zomato-lite design tokens, taken from the UI reference. Defining them
-   here as Tailwind theme colours means we can use bg-brand, text-ink, etc. */
+/* Design tokens taken verbatim from the Zomato-lite UI reference (Stitch),
+   exposed as Tailwind theme colours so bg-primary, text-on-surface,
+   bg-surface-container-lowest, etc. all work. */
 @theme {
-  --color-backdrop: #e9e7e4;
-  --color-canvas: #faf8f7;
-  --color-card: #ffffff;
-  --color-hairline: #ececec;
-  --color-ink: #1c1c1c;
-  --color-ink-2: #696969;
-  --color-ink-3: #8a8a8a;
-  --color-brand: #e23744;
-  --color-brand-dark: #c62330;
-  --color-brand-tint: #fce8e6;
-  --color-rate-green: #239653;
-  --color-rate-green-tint: #e4f5ea;
-  --color-rate-amber: #d9822b;
+  --color-primary: #b7122a;
+  --color-primary-container: #db313f;
+  --color-primary-fixed: #ffdad8;
+  --color-on-primary: #ffffff;
+  --color-on-primary-fixed: #410007;
+  --color-on-primary-fixed-variant: #92001c;
+
+  --color-surface: #fcf9f8;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-container: #f0eded;
+  --color-surface-container-high: #eae7e7;
+  --color-surface-container-highest: #e5e2e1;
+  --color-surface-dim: #dcd9d9;
+
+  --color-on-surface: #1b1b1b;
+  --color-on-surface-variant: #5b403f;
+  --color-outline: #8f6f6e;
+  --color-outline-variant: #e4bebc;
+
+  --color-tertiary: #8b4c00;
+  --color-tertiary-container: #af6102;
+  --color-tertiary-fixed: #ffdcc2;
+  --color-on-tertiary-fixed: #2e1500;
+  --color-on-tertiary-container: #fffbff;
+
+  --color-secondary: #006d37;
+  --color-secondary-container: #8af6a8;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #00723a;
+  --color-on-secondary-fixed-variant: #005228;
+
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
 
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 }
@@ -26,11 +49,32 @@ body {
 }
 
 body {
-  background: var(--color-backdrop);
-  color: var(--color-ink);
+  background: #e7e5e3; /* neutral backdrop behind the phone stage */
+  color: var(--color-on-surface);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Hide number-input spinners etc. is not needed here; keep global CSS tiny. */
+/* Google Material Symbols icon font (loaded in layout). Size is controlled by
+   the element's font-size (e.g. text-[18px]); FILL is set per-icon inline. */
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

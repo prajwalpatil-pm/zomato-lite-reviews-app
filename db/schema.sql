@@ -4,14 +4,15 @@
 --   * there is no average_rating column on restaurants
 --   * there is no latest_review column
 -- Those are not facts, they are results. We store facts and compute results
--- on demand (see the GET endpoint). If we stored an average, we'd have to
--- update it on every new review — and the day we forgot, the app would lie.
+-- on demand (see the GET endpoints). image_url is a fact about the restaurant
+-- (which photo to show), so it lives here — the rating never does.
 
 CREATE TABLE restaurants (
   id        SERIAL PRIMARY KEY,
   name      TEXT NOT NULL,
   cuisine   TEXT NOT NULL,
-  area      TEXT NOT NULL
+  area      TEXT NOT NULL,
+  image_url TEXT
 );
 
 CREATE TABLE reviews (

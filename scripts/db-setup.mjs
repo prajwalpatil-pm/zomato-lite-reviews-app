@@ -22,6 +22,9 @@ const sql = neon(process.env.DATABASE_URL);
 // on semicolons and run the statements in order.
 function statements(file) {
   return readFileSync(join(root, file), "utf8")
+    .split("\n")
+    .map((line) => line.replace(/--.*$/, "")) // drop SQL line-comments first
+    .join("\n")
     .split(";")
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
@@ -44,7 +47,7 @@ async function run() {
     await sql.query(stmt);
   }
 
-  const restaurants = await sql`SELECT * FROM restaurants ORDER BY id`;
+  const restaurants = await sql`SELECT id, name, cuisine, area FROM restaurants ORDER BY id`;
   const reviews = await sql`SELECT id, restaurant_id, rating, comment, created_at FROM reviews ORDER BY created_at`;
 
   console.log("restaurants table:");
